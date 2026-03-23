@@ -1004,6 +1004,7 @@
     const ttsBtn = document.getElementById('ab-tts');
     const ttsSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     let ttsSpeaking = false;
+    let currentLang = 'en';
 
     function getReadableText() {
       const nodes = [...document.querySelectorAll('main h2, main h3, main p, main li')];
@@ -1011,6 +1012,18 @@
         .map(node => node.textContent.replace(/\s+/g, ' ').trim())
         .filter(Boolean)
         .join('. ');
+    }
+
+    function getPreferredVoice(langCode) {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return null;
+
+      const languagePrefix = langCode.toLowerCase().startsWith('hi') ? 'hi' : 'en';
+      return (
+        voices.find(voice => voice.lang && voice.lang.toLowerCase() === langCode.toLowerCase()) ||
+        voices.find(voice => voice.lang && voice.lang.toLowerCase().startsWith(languagePrefix)) ||
+        null
+      );
     }
 
     function stopReading() {
@@ -1027,8 +1040,11 @@
         announce('No readable content found');
         return;
       }
+      const activeSpeechLang = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-IN';
+      const preferredVoice = getPreferredVoice(activeSpeechLang);
+      utterance.lang = activeSpeechLang;
+      if (preferredVoice) utterance.voice = preferredVoice;
       utterance.rate = 0.95;
       utterance.pitch = 1;
       utterance.onend = () => {
@@ -1057,6 +1073,7 @@
       ttsBtn.setAttribute('aria-disabled', 'true');
       ttsBtn.title = 'Read aloud not supported in this browser';
     } else {
+      window.speechSynthesis.onvoiceschanged = () => getPreferredVoice(currentLang === 'hi' ? 'hi-IN' : 'en-IN');
       ttsBtn.addEventListener('click', () => (ttsSpeaking ? stopReading() : startReading()));
       document.addEventListener('keydown', e => {
         if (e.altKey && e.key.toLowerCase() === 'r') {
@@ -1074,7 +1091,6 @@
 
     /* ── Translation toggle (English/Hindi) ── */
     const langBtn = document.getElementById('ab-lang');
-    let currentLang = 'en';
 
     function setGoogleLanguage(lang) {
       const combo = document.querySelector('.goog-te-combo');
@@ -1101,7 +1117,12 @@
         announce('Translation is loading. Please try again in a moment.');
         return;
       }
+      const restartReading = ttsSpeaking;
+      if (restartReading) stopReading();
       updateLangUI(nextLang);
+      if (restartReading) {
+        setTimeout(() => startReading(), 700);
+      }
     });
 
     window.googleTranslateElementInit = function () {
