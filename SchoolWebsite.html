@@ -562,7 +562,7 @@
     <section class="quick-actions-wrap" aria-label="Quick actions">
       <div class="container">
         <div class="quick-actions">
-          <a class="quick-btn" href="tel:01512241087" aria-label="Call now">Call Now</a>
+          <a class="quick-btn" href="tel:01512241087, +919414434078" aria-label="Call now">Call Now</a>
           <a class="quick-btn" href="mailto:bhishmkoushik@gmail.com" aria-label="Send email">Send Email</a>
           <a class="quick-btn" href="https://www.google.com/maps?q=Sudarshna+Nagar,+Pawan+Puri+South+Extension,+Bikaner,+Rajasthan+334003,+India" target="_blank" rel="noopener noreferrer" aria-label="Get directions on Google Maps">Get Directions</a>
         </div>
@@ -1007,27 +1007,38 @@
     let currentLang = 'en';
 
     function getReadableText() {
-      const nodes = [...document.querySelectorAll('main h2, main h3, main p, main li')];
+      /* Use textContent — unlike innerText it is NOT affected by opacity:0
+         so .reveal elements that haven't scrolled into view are still read */
+      const nodes = [...document.querySelectorAll(
+        'main h2, main h3, main p:not(.sr-only), main li, main summary'
+      )];
       return nodes
-        .map(node => node.textContent.replace(/\s+/g, ' ').trim())
-        .filter(Boolean)
+        .map(node => node.textContent.replaceAll(/\s+/g, ' ').trim())
+        .filter(t => t.length > 3)   /* skip emoji-only or single-char nodes */
         .join('. ');
     }
 
-    function getPreferredVoice(langCode) {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices.length) return null;
+    /* Auto-detect language from actual text: count Devanagari vs Latin chars */
+    function detectLangFromText(text) {
+      const devanagari = (text.match(/[\u0900-\u097F]/g) || []).length;
+      const latin = (text.match(/[a-zA-Z]/g) || []).length;
+      if (devanagari === 0 && latin === 0) return currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+      return devanagari > latin * 0.4 ? 'hi-IN' : 'en-IN';
+    }
 
-      const languagePrefix = langCode.toLowerCase().startsWith('hi') ? 'hi' : 'en';
+    function getPreferredVoice(langCode) {
+      const voices = globalThis.speechSynthesis.getVoices();
+      if (!voices.length) return null;
+      const prefix = langCode.toLowerCase().startsWith('hi') ? 'hi' : 'en';
       return (
-        voices.find(voice => voice.lang && voice.lang.toLowerCase() === langCode.toLowerCase()) ||
-        voices.find(voice => voice.lang && voice.lang.toLowerCase().startsWith(languagePrefix)) ||
+        voices.find(v => v.lang && v.lang.toLowerCase() === langCode.toLowerCase()) ||
+        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix)) ||
         null
       );
     }
 
     function stopReading() {
-      window.speechSynthesis.cancel();
+      globalThis.speechSynthesis.cancel();
       ttsSpeaking = false;
       ttsBtn.classList.remove('on');
       ttsBtn.setAttribute('aria-pressed', 'false');
@@ -1040,7 +1051,9 @@
         announce('No readable content found');
         return;
       }
-      const activeSpeechLang = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+      /* Auto-detect from actual visible text — works whether Google Translate
+         has run or not, regardless of what currentLang says */
+      const activeSpeechLang = detectLangFromText(text);
       const utterance = new SpeechSynthesisUtterance(text);
       const preferredVoice = getPreferredVoice(activeSpeechLang);
       utterance.lang = activeSpeechLang;
@@ -1060,8 +1073,8 @@
         announce('Read aloud not available');
       };
 
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
+      globalThis.speechSynthesis.cancel();
+      globalThis.speechSynthesis.speak(utterance);
       ttsSpeaking = true;
       ttsBtn.classList.add('on');
       ttsBtn.setAttribute('aria-pressed', 'true');
@@ -1073,7 +1086,7 @@
       ttsBtn.setAttribute('aria-disabled', 'true');
       ttsBtn.title = 'Read aloud not supported in this browser';
     } else {
-      window.speechSynthesis.onvoiceschanged = () => getPreferredVoice(currentLang === 'hi' ? 'hi-IN' : 'en-IN');
+      globalThis.speechSynthesis.onvoiceschanged = () => getPreferredVoice(currentLang === 'hi' ? 'hi-IN' : 'en-IN');
       ttsBtn.addEventListener('click', () => (ttsSpeaking ? stopReading() : startReading()));
       document.addEventListener('keydown', e => {
         if (e.altKey && e.key.toLowerCase() === 'r') {
@@ -1085,7 +1098,7 @@
         if (document.hidden && ttsSpeaking) stopReading();
       });
       window.addEventListener('beforeunload', () => {
-        if (ttsSpeaking) window.speechSynthesis.cancel();
+        if (ttsSpeaking) globalThis.speechSynthesis.cancel();
       });
     }
 
