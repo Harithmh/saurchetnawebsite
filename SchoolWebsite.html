@@ -124,6 +124,21 @@
     .ab-btn.on { background:var(--accent); border-color:var(--accent); }
     .ab-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
     .ab-lbl { font-size:.52rem; color:rgba(255,255,255,.92); margin-top:2px; letter-spacing:.03em; line-height:1.2; text-align:center; }
+    #a11y-toggle {
+      display:none;
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      z-index:1002;
+      border:none;
+      border-radius:999px;
+      background:var(--brand-deep);
+      color:#fff;
+      font-weight:700;
+      padding:12px 14px;
+      box-shadow:0 8px 20px rgba(0,0,0,.28);
+      cursor:pointer;
+    }
 
     /* ── Google translate helpers ── */
     #google_translate_element { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
@@ -426,9 +441,11 @@
       nav ul li a { display:block; padding:10px 4px; }
       .location-grid { grid-template-columns:1fr; }
       .contact-grid { grid-template-columns:1fr; }
+      #a11y-toggle { display:flex; align-items:center; justify-content:center; }
       #a11y-bar {
+        display:none;
         top:auto;
-        bottom:12px;
+        bottom:68px;
         right:10px;
         left:10px;
         transform:none;
@@ -439,6 +456,7 @@
         border-radius:14px;
         padding:10px 8px;
       }
+      #a11y-bar.open { display:flex; }
       .ab-wrap {
         width:calc(25% - 6px);
         min-width:64px;
@@ -450,7 +468,7 @@
       .ab-lbl {
         font-size:.48rem;
       }
-      #back-top { right:16px; bottom:140px; }
+      #back-top { right:16px; bottom:76px; }
     }
 
     @media (max-width:420px) {
@@ -471,6 +489,8 @@
 
   <!-- Skip navigation -->
   <a href="#main-content" class="skip-nav">Skip to main content</a>
+
+  <button type="button" id="a11y-toggle" aria-controls="a11y-bar" aria-expanded="false" aria-label="Toggle accessibility options">A11Y</button>
 
   <!-- Accessibility toolbar -->
   <aside id="a11y-bar" aria-label="Accessibility options">
@@ -835,6 +855,8 @@
     /* ── Mobile menu ── */
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
+    const a11yBar = document.getElementById('a11y-bar');
+    const a11yToggle = document.getElementById('a11y-toggle');
     hamburger.addEventListener('click', () => {
       const isOpen = hamburger.getAttribute('aria-expanded') === 'true';
       hamburger.setAttribute('aria-expanded', String(!isOpen));
@@ -845,6 +867,30 @@
       if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
         hamburger.setAttribute('aria-expanded', 'false');
         navMenu.classList.remove('open');
+      }
+    });
+
+    function closeA11yBarMobile() {
+      a11yBar.classList.remove('open');
+      a11yToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    a11yToggle.addEventListener('click', () => {
+      const isOpen = a11yBar.classList.toggle('open');
+      a11yToggle.setAttribute('aria-expanded', String(isOpen));
+      announce(isOpen ? 'Accessibility options opened' : 'Accessibility options closed');
+    });
+
+    document.addEventListener('click', e => {
+      if (window.innerWidth > 768) return;
+      if (!a11yBar.contains(e.target) && !a11yToggle.contains(e.target)) {
+        closeA11yBarMobile();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) {
+        closeA11yBarMobile();
       }
     });
 
