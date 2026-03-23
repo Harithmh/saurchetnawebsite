@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Saur Chetna Logo</title>
+  <desc id="desc">Sun, open book, and supportive hands symbol</desc>
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8c04a"/>
+      <stop offset="100%" stop-color="#c57b1f"/>
+    </linearGradient>
+    <linearGradient id="book" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f9a90"/>
+      <stop offset="100%" stop-color="#0b4d48"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="52" fill="#f6f5ef"/>
+
+  <g transform="translate(128 72)">
+    <circle r="26" fill="url(#sun)"/>
+    <g stroke="#c57b1f" stroke-width="6" stroke-linecap="round">
+      <line x1="0" y1="-44" x2="0" y2="-60"/>
+      <line x1="31" y1="-31" x2="42" y2="-42"/>
+      <line x1="44" y1="0" x2="60" y2="0"/>
+      <line x1="31" y1="31" x2="42" y2="42"/>
+      <line x1="0" y1="44" x2="0" y2="60"/>
+      <line x1="-31" y1="31" x2="-42" y2="42"/>
+      <line x1="-44" y1="0" x2="-60" y2="0"/>
+      <line x1="-31" y1="-31" x2="-42" y2="-42"/>
+    </g>
+  </g>
+
+  <path d="M64 128q32-18 64 0v58q-32-18-64 0z" fill="url(#book)"/>
+  <path d="M192 128q-32-18-64 0v58q32-18 64 0z" fill="url(#book)"/>
+  <line x1="128" y1="128" x2="128" y2="186" stroke="#f6f5ef" stroke-width="4"/>
+
+  <path d="M48 188c20 24 42 34 72 34" fill="none" stroke="#0f766e" stroke-width="12" stroke-linecap="round"/>
+  <path d="M208 188c-20 24-42 34-72 34" fill="none" stroke="#0f766e" stroke-width="12" stroke-linecap="round"/>
+</svg>
